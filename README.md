@@ -1,23 +1,26 @@
 # mountebank-loadtest
-Adding configuraiton files 
+Mountebank 
+
     First, let's create an default-imposters.json file
         - static
         - dynamic
     Try to run mountebank in your computer:
         //create
-        npm install -g mountebank
+            npm install -g mountebank
         //run the mountebank
-        mb --configfile default-imposters.json --allowInjection
-    After finish the imposter file, create Dockerfile to push the image to Docker Hub.
+            mb --configfile default-imposters.json --allowInjection
+            
+ After finish the imposter file, create Dockerfile to push the image to Docker Hub.
+        
         In tour terminal, run:
             //Build Docker Image using Docker Hub
-            docker build -t mountebank .
-            docker image tag mountebank forio2/mountebank:latest
-
+                docker build -t mountebank .
+                docker image tag mountebank forio2/mountebank:latest
             //Pushing Docker image 
-            docker image push forio2/mountebank:latest
+                docker image push forio2/mountebank:latest
 
 K8s
+
     Docker Desktop's Kubernetes Setup
         - kubernetes
         - minikube (brew install minikube)
