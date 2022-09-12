@@ -1,0 +1,95 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: mountebank-svc
+  labels:
+    app: mountebank-svc
+spec:
+  selector:
+    app: mountebank-app
+  type: LoadBalancer
+  ports:
+    - port: 2525
+      name: mountebank
+      targetPort: 2525
+      nodePort: 30000
+      protocol: TCP
+    - port: 3000
+      name: imposterdefault
+      targetPort: 3000
+      nodePort: 30001
+      protocol: TCP
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mountebank-pvc
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mountebank-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mountebank-app
+  template:
+    metadata:
+      labels:
+        app: mountebank-app
+    spec:
+      containers:
+      - name: mountebank-app
+        image: forio2/mountebank
+        resources:
+          requests:
+            memory: "50Mi"
+            cpu: "10m"
+          limits:
+            memory: "128Mi"
+            cpu: "300m"
+        ports:
+        - containerPort: 2525
+          name: mountebank
+        - containerPort: 3000
+          name: imposterdefault
+        livenessProbe:
+          httpGet:
+            path: /config
+            port: 2525
+          periodSeconds: 5
+          initialDelaySeconds: 5
+          failureThreshold: 1
+        volumeMounts:
+          - mountPath: /data
+            name: mbdb-volume
+      volumes:
+        - name: mbdb-volume
+          persistentVolumeClaim: 
+            claimName: mountebank-pvc
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: mountebank-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: mountebank-app
+  minReplicas: 1
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 50

@@ -1,0 +1,60 @@
+{
+  "imposters": [
+    {
+      "protocol": "http",
+      "port": 3000,
+      "name": "load test",
+      "recordRequests": false,
+      "stubs": [
+        {
+          "predicates": [
+            {
+              "equals": {
+                "method": "GET",
+                "path": "/static"
+              }
+            }
+          ],
+          "responses": [
+            {
+              "is": {
+                "statusCode": 200,
+                "headers": {
+                  "Content-Type": "application/json"
+                },
+                "body": {
+                  "message": "static"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "predicates": [
+            {
+              "matches": {
+                "method": "GET",
+                "path": "/dynamic/\\d+"
+              }
+            }
+          ],
+          "responses": [
+            {
+              "inject": "function (config) {\n    var count = request.path \n\n  count = count.split('/')[2] \n\n   return {\n        body: `${count}`\n    };\n}"
+            }
+          ]
+        },
+        {
+          "responses": [
+            {
+              "proxy": {
+                "to": "https://www.google.com",
+                "mode": "proxyAlways"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
